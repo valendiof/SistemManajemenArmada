@@ -1,0 +1,9 @@
+*.exe
+.git
+.gitignore
+docs
+postman
+node_modules
+tmp
+vendor
+config.env

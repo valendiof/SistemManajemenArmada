@@ -1,0 +1,92 @@
+{
+  "info": {
+    "_postman_id": "f0c6f0ad-4d6a-4b9e-8d8e-7f3e8b1a2c3d",
+    "name": "Fleet Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Latest Location",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/vehicles/{{vehicleId}}/location",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "vehicles",
+            "{{vehicleId}}",
+            "location"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Location History",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/vehicles/{{vehicleId}}/history?start={{start}}&end={{end}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "vehicles",
+            "{{vehicleId}}",
+            "history"
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "{{start}}"
+            },
+            {
+              "key": "end",
+              "value": "{{end}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Location History Today",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/vehicles/{{vehicleId}}/history/today",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "vehicles",
+            "{{vehicleId}}",
+            "history",
+            "today"
+          ]
+        }
+      }
+    }
+  ]
+}

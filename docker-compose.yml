@@ -1,0 +1,94 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: fleet
+      POSTGRES_PASSWORD: fleetpass
+      POSTGRES_DB: fleet
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: fleet
+      RABBITMQ_DEFAULT_PASS: rabbitpass
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  eclipse-mosquitto:
+    image: eclipse-mosquitto:2
+    user: "0:0"
+    ports:
+      - "1883:1883"
+    environment:
+      MQTT_USER: fleet
+      MQTT_PASSWORD: mqttpass
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    command: ["sh","-c","umask 077 && if [ -f /mosquitto/data/passwd ]; then mosquitto_passwd -b /mosquitto/data/passwd \"$$MQTT_USER\" \"$$MQTT_PASSWORD\"; else mosquitto_passwd -b -c /mosquitto/data/passwd \"$$MQTT_USER\" \"$$MQTT_PASSWORD\"; fi && chown mosquitto:mosquitto /mosquitto/data/passwd && exec mosquitto -c /mosquitto/config/mosquitto.conf"]
+
+  app-backend:
+    build: .
+    command: ["./backend"]
+    ports:
+      - "8080:8080"
+    env_file:
+      - config.env
+    environment:
+      DB_URL: postgres://fleet:fleetpass@postgres:5432/fleet?sslmode=disable
+      MQTT_BROKER: tcp://eclipse-mosquitto:1883
+      MQTT_USER: fleet
+      MQTT_PASSWORD: mqttpass
+      RABBITMQ_URL: amqp://fleet:rabbitpass@rabbitmq:5672/
+      API_KEY: ${API_KEY}
+      PORT: 8080
+      MIGRATIONS_PATH: /app/migrations/001_create_vehicle_locations.sql
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eclipse-mosquitto:
+        condition: service_started
+
+  app-worker:
+    build: .
+    command: ["./worker"]
+    environment:
+      RABBITMQ_URL: amqp://fleet:rabbitpass@rabbitmq:5672/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  app-mock:
+    build: .
+    command: ["./mock"]
+    environment:
+      MQTT_BROKER: tcp://eclipse-mosquitto:1883
+      MQTT_USER: fleet
+      MQTT_PASSWORD: mqttpass
+      MOCK_VEHICLE_ID: vehicle-001
+    depends_on:
+      eclipse-mosquitto:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  mosquitto_data:
+  mosquitto_log:
