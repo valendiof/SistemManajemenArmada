@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 go build -o worker ./cmd/worker
 RUN CGO_ENABLED=0 go build -o mock ./cmd/mock
 
 FROM alpine:3.19
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /app
 COPY --from=builder /build/backend .
 COPY --from=builder /build/worker .

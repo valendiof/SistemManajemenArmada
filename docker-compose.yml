@@ -10,7 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -24,7 +24,7 @@ services:
       - "5672:5672"
       - "15672:15672"
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -41,11 +41,11 @@ services:
       - ./mosquitto/config:/mosquitto/config
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
-    command: ["sh","-c","umask 077 && if [ -f /mosquitto/data/passwd ]; then mosquitto_passwd -b /mosquitto/data/passwd \"$$MQTT_USER\" \"$$MQTT_PASSWORD\"; else mosquitto_passwd -b -c /mosquitto/data/passwd \"$$MQTT_USER\" \"$$MQTT_PASSWORD\"; fi && chown mosquitto:mosquitto /mosquitto/data/passwd && exec mosquitto -c /mosquitto/config/mosquitto.conf"]
+    command: [ "sh", "-c", "umask 077 && if [ -f /mosquitto/data/passwd ]; then mosquitto_passwd -b /mosquitto/data/passwd \"$$MQTT_USER\" \"$$MQTT_PASSWORD\"; else mosquitto_passwd -b -c /mosquitto/data/passwd \"$$MQTT_USER\" \"$$MQTT_PASSWORD\"; fi && chown mosquitto:mosquitto /mosquitto/data/passwd && exec mosquitto -c /mosquitto/config/mosquitto.conf" ]
 
   app-backend:
     build: .
-    command: ["./backend"]
+    command: [ "./backend" ]
     ports:
       - "8080:8080"
     env_file:
@@ -59,6 +59,7 @@ services:
       API_KEY: ${API_KEY}
       PORT: 8080
       MIGRATIONS_PATH: /app/migrations/001_create_vehicle_locations.sql
+      TZ: Asia/Jakarta
     depends_on:
       postgres:
         condition: service_healthy
@@ -69,21 +70,23 @@ services:
 
   app-worker:
     build: .
-    command: ["./worker"]
+    command: [ "./worker" ]
     environment:
       RABBITMQ_URL: amqp://fleet:rabbitpass@rabbitmq:5672/
+      TZ: Asia/Jakarta
     depends_on:
       rabbitmq:
         condition: service_healthy
 
   app-mock:
     build: .
-    command: ["./mock"]
+    command: [ "./mock" ]
     environment:
       MQTT_BROKER: tcp://eclipse-mosquitto:1883
       MQTT_USER: fleet
       MQTT_PASSWORD: mqttpass
       MOCK_VEHICLE_ID: vehicle-001
+      TZ: Asia/Jakarta
     depends_on:
       eclipse-mosquitto:
         condition: service_started
