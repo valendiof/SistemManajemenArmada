@@ -64,6 +64,15 @@ Mengembalikan array lokasi dalam rentang timestamp (Unix epoch).
 curl -H "Authorization: Bearer K8P2N5W9Q4X1V7M6" "http://localhost:8080/vehicles/vehicle-001/history?start=1710000000&end=1710100000"
 ```
 
+### GET /vehicles/:vehicle_id/history/today
+
+Mengembalikan array lokasi dalam rentang hari ini.
+
+**Contoh:**
+```bash
+curl -H "Authorization: Bearer K8P2N5W9Q4X1V7M6" "http://localhost:8080/vehicles/vehicle-001/history/today"
+```
+
 ## Alur Testing
 
 1. Jalankan `docker compose up -d`
